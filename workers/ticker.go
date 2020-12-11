@@ -1,33 +1,21 @@
 package workers
 
 import (
-	"tsetmc-gopher/global"
-	"tsetmc-gopher/models"
 	"fmt"
-	"strconv"
+	"go.uber.org/zap"
 	"sync"
 	"time"
+	"tsetmc-gopher/global"
+	"tsetmc-gopher/models"
 )
 
-func longRunningTask(sym []models.Symbols, workerId int) <-chan string {
-	r := make(chan string)
-	go func() {
-		defer close(r)
-		// Simulate a workload.
-		dataBaseSynchronizator(sym)
-		r <- "Done Thread: " + strconv.Itoa(workerId)
-	}()
-	return r
-}
 func threadStarter(sym []models.Symbols, id int, wg *sync.WaitGroup) {
 	// On return, notify the WaitGroup that we're done.
 	defer wg.Done()
-
-	fmt.Printf("Worker %d starting\n", id)
-
+	//fmt.Printf("Worker %d starting\n", id)
 	dataBaseSynchronizator(sym)
 
-	fmt.Printf("Worker %d done\n", id)
+	//fmt.Printf("Worker %d done\n", id)
 }
 
 func Ticker(numOfThread int) {
@@ -35,10 +23,8 @@ func Ticker(numOfThread int) {
 	threadLoopCounter := 0
 	fmt.Println("Start at: ", time.Now().Format("2006-01-02 3:4:5"))
 	sym := []models.Symbols{}
-	reslut := global.BRC_DB.Find(&sym)
-	// SELECT * FROM `users`
-	println(reslut.Error) // returns found records count, equals `len(users)`
-
+	reslut := global.BRC_DB.Find(&sym) // SELECT * FROM `users`
+	global.BRC_LOG.Error("returns found records count", zap.Any("err", reslut.Error))
 	size := len(sym) / numOfThread
 	end := len(sym)
 	//iszero:= end%numOfThread
@@ -47,21 +33,21 @@ func Ticker(numOfThread int) {
 	//}
 	//var threadCounter int
 	type slice struct {
-		left int
+		left  int
 		right int
 	}
-	sliceSize :=[]slice{}
-	for{
-	var j int
-	for i := 0; i < end; i+=size {
-		j += size
-		if j > end {
-			j = end
+	sliceSize := []slice{}
+	for {
+		var j int
+		for i := 0; i < end; i += size {
+			j += size
+			if j > end {
+				j = end
+			}
+			sliceSize = append(sliceSize, slice{left: i, right: j})
 		}
-		sliceSize = append(sliceSize,slice{left: i,right: j})
-	}
 		wg.Add(len(sliceSize))
-		for index :=range sliceSize{
+		for index := range sliceSize {
 			go threadStarter(sym[sliceSize[index].left:sliceSize[index].right], threadLoopCounter, &wg)
 			threadLoopCounter = threadLoopCounter + 1
 		}
@@ -85,10 +71,10 @@ func dataBaseSynchronizator(sym []models.Symbols) {
 			symbolStatusTable := global.BRC_DB.Create(symSatus)
 			//println("org: ",result.Error)
 			if symbolRealTimeTable == nil {
-				global.BRC_LOG.Error(" dataBaseSynchronizator: "+ sym[i].Name)
+				global.BRC_LOG.Error(" dataBaseSynchronizator: " + sym[i].Name)
 			}
 			if symbolStatusTable == nil {
-				global.BRC_LOG.Error(" dataBaseSynchronizator: "+ sym[i].Name)
+				global.BRC_LOG.Error(" dataBaseSynchronizator: " + sym[i].Name)
 			}
 		} else {
 			brokenSymbol = append(brokenSymbol, sym[i])
@@ -100,7 +86,7 @@ func getBrokenLink(sym []models.Symbols) {
 		rawData := RealTimeDataDownloaderKey(sym[i])
 		result := global.BRC_DB.Create(rawData)
 		if result == nil {
-			global.BRC_LOG.Error(" dataBaseSynchronizator: "+ sym[i].Name)
+			global.BRC_LOG.Error(" dataBaseSynchronizator: " + sym[i].Name)
 		}
 	}
 }

@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"tsetmc-gopher/global"
-	"tsetmc-gopher/models"
-	"tsetmc-gopher/tools"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,6 +9,9 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"tsetmc-gopher/global"
+	"tsetmc-gopher/models"
+	"tsetmc-gopher/tools"
 )
 
 // WriteToFile will print any string of text to a file safely by
@@ -52,7 +52,7 @@ func UpdateSymbolJson() {
 			symdata.IsniId = spil[1]
 			result = append(result, symdata)
 			if result != nil {
-				global.BRC_LOG.Error(" dataBaseSynchronizator: "+ symdata.Name)
+				global.BRC_LOG.Error(" dataBaseSynchronizator: " + symdata.Name)
 			}
 		}
 	}
@@ -78,10 +78,10 @@ func UpdataSymbolDbs() {
 			symdata.FullName = spil[3]
 			symdata.Key = spil[0]
 			symdata.IsniId = spil[1]
-			var result []string
-			result = strings.Split(spil[2], "")
-			sort.Strings(result)
-			if _, err := strconv.Atoi(result[1]); err == nil {
+			var checker []string
+			checker = strings.Split(spil[2], "")
+			sort.Strings(checker)
+			if _, err := strconv.Atoi(checker[1]); err == nil {
 				symdata.IsCompany = false
 			} else if strings.Contains(spil[1], "IRT") {
 				symdata.IsCompany = false
@@ -90,8 +90,9 @@ func UpdataSymbolDbs() {
 			}
 			if global.BRC_DB.Model(&symdata).Where("Name = ?", symdata.Name).Updates(&symdata).RowsAffected == 0 {
 				result := global.BRC_DB.Create(&symdata)
+				println("sym add name : " + symdata.Name)
 				if result != nil {
-					global.BRC_LOG.Error(" dataBaseSynchronizator: "+ symdata.Name)
+					global.BRC_LOG.Error(" dataBaseSynchronizator: " + symdata.Name)
 				} else {
 					println("row effected symname:%s", symdata.Name)
 				}

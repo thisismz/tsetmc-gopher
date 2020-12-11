@@ -1,11 +1,11 @@
 package workers
 
 import (
+	"fmt"
+	"go.uber.org/zap"
 	"tsetmc-gopher/global"
 	"tsetmc-gopher/models"
 	tool "tsetmc-gopher/tools"
-	"fmt"
-	"go.uber.org/zap"
 )
 
 // For recovery
@@ -21,7 +21,7 @@ func handlepanic() {
 func RealTimeDataDownloaderName(symName string) *models.RealTimeData {
 	defer handlepanic()
 	var sym models.Symbols
-	reslut := global.BRC_DB.Where("name = ?", "symName").Find(&sym)
+	reslut := global.BRC_DB.Model(&sym).Where("name = ?", symName).First(&sym)
 	println(reslut.RowsAffected)
 	s1 := fmt.Sprintf(global.BRC_CONFIG.Link.TSE_ISNT_INFO_URL, sym.Key)
 	urlData := tool.Responser(s1)
@@ -39,7 +39,7 @@ func RealTimeDataDownloaderKey(sym models.Symbols) *models.RealTimeData {
 }
 
 //GetAllSymbolRealtimeDataInMap get all data in map format for save in json if link is broken get symbol name
-func GetAllSymbolRealtimeDataInMap() ([]models.RealTimeData) {
+func GetAllSymbolRealtimeDataInMap() []models.RealTimeData {
 	defer handlepanic()
 	var temp []models.RealTimeData
 	sym := []models.Symbols{}
@@ -47,7 +47,7 @@ func GetAllSymbolRealtimeDataInMap() ([]models.RealTimeData) {
 		symData := RealTimeDataDownloaderKey(sym[i])
 		if symData != nil {
 			symData.SymbolsID = sym[i].ID
-			temp = append(temp,*symData)
+			temp = append(temp, *symData)
 			//println("org: ",result.Error)
 			if symData == nil {
 				global.BRC_LOG.Error("GetAllSymbolRealtimeDataInMap")
@@ -57,4 +57,3 @@ func GetAllSymbolRealtimeDataInMap() ([]models.RealTimeData) {
 	}
 	return temp
 }
-

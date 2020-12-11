@@ -3,7 +3,7 @@
 # system configuration
 system:
   db-type: 'postgres'
-  thread: 70
+  thread: 12
 
 # zap logger configuration
 zap:

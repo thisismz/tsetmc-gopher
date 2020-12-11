@@ -125,6 +125,6 @@ type RealTimeData struct {
 //	//	LastPrice string
 //	//}
 //	var res SymbolStatus
-//	global.BRC_DB.Model(RealTimeData{}).Select("real_time_data.id, symbols.name,real_time_data.created_at,real_time_data.last_price").Joins("INNER JOIN symbols ON real_time_data.id=symbols.id").Scan(&res)
+//	global.BRC_DB.Table("real_time_data").Select("real_time_data.id, symbols.name,real_time_data.created_at,real_time_data.last_price").Joins("INNER JOIN symbols ON real_time_data.symbols_id=symbols.id").Where("symbols.name = "+"'"+name+"'").Find(&res)
 //	return &res
 //}
